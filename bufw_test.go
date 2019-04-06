@@ -61,3 +61,19 @@ func TestWaitN(t *testing.T) {
 		t.Errorf("%s and %s are not equal", output, expected)
 	}
 }
+
+func TestReset(t *testing.T) {
+	w := New(false)
+	input := []byte("hello")
+	w.Write(input)
+	output := w.Bytes()
+	if !bytes.Equal(output, input) {
+		t.Errorf("%s and %s are not equal", output, input)
+	}
+	input = []byte("bye")
+	w.Write(input)
+	output = w.Bytes()
+	if !bytes.Equal(output, input) {
+		t.Errorf("%s and %s are not equal", output, input)
+	}
+}
