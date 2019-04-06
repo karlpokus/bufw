@@ -2,16 +2,15 @@
 package bufw
 
 import (
-	"bytes"
-	"sync"
 	"strings"
+	"sync"
 )
 
 // bufw implements io.Writer
 // safe for concurrent use
 type bufw struct {
 	mu      sync.Mutex
-	buf     bytes.Buffer
+	buf     []byte
 	written chan bool
 }
 
@@ -20,13 +19,7 @@ type bufw struct {
 func (bw *bufw) Write(b []byte) (n int, err error) {
 	bw.mu.Lock()
 	defer bw.mu.Unlock()
-	n, err = bw.buf.Write(b)
-	if err != nil {
-		if bw.written != nil {
-			bw.written <- true
-		}
-		return n, err
-	}
+	bw.buf = append(bw.buf, b...)
 	if bw.written != nil {
 		bw.written <- true
 	}
@@ -37,8 +30,8 @@ func (bw *bufw) Write(b []byte) (n int, err error) {
 func (bw *bufw) Bytes() []byte {
 	bw.mu.Lock()
 	defer bw.mu.Unlock()
-	b := bw.buf.Bytes()
-	bw.buf.Reset()
+	b := bw.buf
+	bw.buf = nil
 	return b
 }
 
