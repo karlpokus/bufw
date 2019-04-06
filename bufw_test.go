@@ -31,7 +31,7 @@ func TestString(t *testing.T) {
 	input := []byte(" hello ")
 	w.Write(input)
 	output := w.String()
-	inputTrimmed := string(bytes.Trim(input, " "))
+	inputTrimmed := string(bytes.TrimSpace(input))
 	if output != inputTrimmed {
 		t.Errorf("%s and %s are not equal", output, inputTrimmed)
 	}
@@ -50,7 +50,7 @@ func TestWait(t *testing.T) {
 
 func TestWaitN(t *testing.T) {
 	w := New(true)
-	input := []byte("hello")
+	input := []byte(" hello ")
 	go func() { w.Write(input) }()
 	go func() { w.Write(input) }()
 	go func() { w.Write(input) }()
