@@ -1,3 +1,4 @@
+// Package bufw provides a concurrency-safe io.Writer with internal buffer and sync props
 package bufw
 
 import (
