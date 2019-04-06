@@ -22,7 +22,7 @@ $ go test -v -cover -race
 - [ ] go mod
 - [ ] conf
 - [ ] would passing a sync chan to New be more flexible?
-- [ ] trim Write input
+- [x] trim Write input
 - [x] replace bytes.Buffer with a single []byte
 
 # license

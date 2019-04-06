@@ -2,7 +2,7 @@
 package bufw
 
 import (
-	"strings"
+	"bytes"
 	"sync"
 )
 
@@ -14,12 +14,12 @@ type bufw struct {
 	written chan bool
 }
 
-// Write writes to an internal buffer for later inspection
-// also writes to the written chan if it has been instantiated
+// Write writes whitespace trimmed bytes to an internal buffer
+// also writes to the written chan if sync is enabled
 func (bw *bufw) Write(b []byte) (n int, err error) {
 	bw.mu.Lock()
 	defer bw.mu.Unlock()
-	bw.buf = append(bw.buf, b...)
+	bw.buf = append(bw.buf, bytes.TrimSpace(b)...)
 	if bw.written != nil {
 		bw.written <- true
 	}
@@ -37,8 +37,7 @@ func (bw *bufw) Bytes() []byte {
 
 // String returns buf as a string and resets buf
 func (bw *bufw) String() string {
-	b := bw.Bytes()
-	return strings.TrimSpace(string(b))
+	return string(bw.Bytes())
 }
 
 // Wait blocks on the written chan until a Write is performed. Used for synchronization
