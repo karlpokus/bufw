@@ -42,8 +42,9 @@ func (bw *Bufw) String() string {
 
 // Wait blocks on the written chan until a Write is performed. Used for synchronization
 // A must use if sync is enabled or the Write call will block
-func (bw *Bufw) Wait() bool {
-	return <-bw.written
+func (bw *Bufw) Wait() {
+	<-bw.written
+	return
 }
 
 // WaitN blocks on the written chan until n Writes are performed
