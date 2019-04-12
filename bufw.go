@@ -50,7 +50,7 @@ func (bw *Bufw) Wait() {
 // WaitN blocks on the written chan until n Writes are performed
 func (bw *Bufw) WaitN(n int) {
 	for i := 0; i < n; i++ {
-		<-bw.written
+		bw.Wait()
 	}
 }
 
