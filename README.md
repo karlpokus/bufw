@@ -1,6 +1,8 @@
 # bufw
 A concurrency-safe io.Writer with internal buffer and sync props for go tests
 
+[![GoDoc](https://godoc.org/github.com/karlpokus/bufw?status.svg)](https://godoc.org/github.com/karlpokus/bufw)
+
 # use case
 You have some function you want to test that requires an `io.Writer`, like a network connection or a file descriptor, and you want to inspect what was written at a later point. Writes to bufw are safe for concurrent use. Use the sync feature If you want to await 1+ writes.
 
@@ -24,6 +26,7 @@ $ go test -v -cover -race
 - [ ] would passing a sync chan to New be more flexible?
 - [x] trim Write input
 - [x] replace bytes.Buffer with a single []byte
+- [x] godoc
 
 # license
 MIT

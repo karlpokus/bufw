@@ -6,9 +6,9 @@ import (
 	"sync"
 )
 
-// bufw implements io.Writer
+// Bufw implements io.Writer
 // safe for concurrent use
-type bufw struct {
+type Bufw struct {
 	mu      sync.Mutex
 	buf     []byte
 	written chan bool
@@ -16,7 +16,7 @@ type bufw struct {
 
 // Write writes whitespace trimmed bytes to an internal buffer
 // also writes to the written chan if sync is enabled
-func (bw *bufw) Write(b []byte) (n int, err error) {
+func (bw *Bufw) Write(b []byte) (n int, err error) {
 	bw.mu.Lock()
 	defer bw.mu.Unlock()
 	bw.buf = append(bw.buf, bytes.TrimSpace(b)...)
@@ -27,7 +27,7 @@ func (bw *bufw) Write(b []byte) (n int, err error) {
 }
 
 // Bytes resets-, and returns the buffer contents
-func (bw *bufw) Bytes() []byte {
+func (bw *Bufw) Bytes() []byte {
 	bw.mu.Lock()
 	defer bw.mu.Unlock()
 	b := bw.buf
@@ -36,26 +36,26 @@ func (bw *bufw) Bytes() []byte {
 }
 
 // String returns buf as a string and resets buf
-func (bw *bufw) String() string {
+func (bw *Bufw) String() string {
 	return string(bw.Bytes())
 }
 
 // Wait blocks on the written chan until a Write is performed. Used for synchronization
 // A must use if sync is enabled or the Write call will block
-func (bw *bufw) Wait() bool {
+func (bw *Bufw) Wait() bool {
 	return <-bw.written
 }
 
 // WaitN blocks on the written chan until n Writes are performed
-func (bw *bufw) WaitN(n int) {
+func (bw *Bufw) WaitN(n int) {
 	for i := 0; i < n; i++ {
 		<-bw.written
 	}
 }
 
-// New returns a bufw type and instantiates the written chan if enableSync is true
-func New(enableSync bool) *bufw {
-	w := &bufw{}
+// New returns a Bufw type and instantiates the written chan if enableSync is true
+func New(enableSync bool) *Bufw {
+	w := &Bufw{}
 	if enableSync {
 		w.written = make(chan bool)
 	}
