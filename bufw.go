@@ -3,15 +3,19 @@ package bufw
 
 import (
 	"bytes"
+	"errors"
 	"sync"
+	"time"
 )
 
-// Bufw implements io.Writer
-// safe for concurrent use
+var ErrTimeout = errors.New("timeout")
+
+// Bufw implements io.Writer. Safe for concurrent use
 type Bufw struct {
 	sync.Mutex
 	buf     []byte
 	written chan bool
+	ttl     time.Duration
 }
 
 // Write writes whitespace trimmed bytes to an internal buffer
@@ -40,25 +44,45 @@ func (w *Bufw) String() string {
 	return string(w.Bytes())
 }
 
-// Wait blocks on the written chan until a Write is performed. Used for synchronization
-// A must use if sync is enabled or the Write call will block
-func (w *Bufw) Wait() {
-	<-w.written
-	return
-}
-
-// WaitN blocks on the written chan until n Writes are performed
-func (w *Bufw) WaitN(n int) {
-	for i := 0; i < n; i++ {
-		w.Wait()
+// Wait blocks on the written chan until a Write is performed or a timeout occurs.
+// A timeout will return an error.
+func (w *Bufw) Wait() error {
+	timer := time.NewTimer(w.ttl)
+	select {
+	case <-timer.C:
+		return ErrTimeout
+	case <-w.written:
+		timer.Stop()
+		return nil
 	}
 }
 
+// WaitN blocks on the written chan until n Writes are performed or a timeout occurs.
+// Returns an error and number of successful writes performed.
+func (w *Bufw) WaitN(n int) (int, error) {
+	for i := 0; i < n; i++ {
+		err := w.Wait()
+		if err != nil {
+			return i, err
+		}
+	}
+	return n, nil
+}
+
+/// SyncTimeout sets the timeout for the Wait and WaitN funcs
+func (w *Bufw) SyncTimeout(ttl string) {
+	d, _ := time.ParseDuration(ttl)
+	w.ttl = d
+}
+
 // New returns a Bufw type and instantiates the written chan if enableSync is true
+// The default timeout for sync is 10s
 func New(enableSync bool) *Bufw {
 	w := &Bufw{}
 	if enableSync {
 		w.written = make(chan bool)
+		d, _ := time.ParseDuration("10s")
+		w.ttl = d
 	}
 	return w
 }

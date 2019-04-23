@@ -3,6 +3,7 @@ package bufw
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 func TestNew(t *testing.T) {
@@ -41,10 +42,32 @@ func TestWait(t *testing.T) {
 	w := New(true)
 	input := []byte("hello")
 	go func() { w.Write(input) }()
-	w.Wait()
+	err := w.Wait()
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
 	output := w.Bytes()
 	if !bytes.Equal(output, input) {
 		t.Errorf("%s and %s are not equal", output, input)
+	}
+}
+
+func TestWaitTimeout(t *testing.T) {
+	w := New(true)
+	w.SyncTimeout("100ms")
+	input := []byte("hello")
+	go func() {
+		time.Sleep(1 * time.Second)
+		w.Write(input)
+	}()
+	err := w.Wait()
+	if err != ErrTimeout {
+		t.Errorf("Expected %s, got %s", ErrTimeout, err)
+	}
+	output := w.Bytes()
+	var expected []byte
+	if !bytes.Equal(output, expected) {
+		t.Errorf("%s and %s are not equal", output, expected)
 	}
 }
 
@@ -54,8 +77,38 @@ func TestWaitN(t *testing.T) {
 	go func() { w.Write(input) }()
 	go func() { w.Write(input) }()
 	go func() { w.Write(input) }()
-	w.WaitN(3)
+	n, err := w.WaitN(3)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+	if n != 3 {
+		t.Errorf("Expected %d, got %d", 3, n)
+	}
 	expected := []byte("hellohellohello")
+	output := w.Bytes()
+	if !bytes.Equal(output, expected) {
+		t.Errorf("%s and %s are not equal", output, expected)
+	}
+}
+
+func TestWaitNTimeout(t *testing.T) {
+	w := New(true)
+	w.SyncTimeout("100ms")
+	input := []byte(" hello ")
+	go func() { w.Write(input) }()
+	go func() { w.Write(input) }()
+	go func() {
+		time.Sleep(1 * time.Second)
+		w.Write(input)
+	}()
+	n, err := w.WaitN(3)
+	if err != ErrTimeout {
+		t.Errorf("Expected %s, got %s", ErrTimeout, err)
+	}
+	if n != 2 {
+		t.Errorf("Expected %d, got %d", 0, n)
+	}
+	expected := []byte("hellohello")
 	output := w.Bytes()
 	if !bytes.Equal(output, expected) {
 		t.Errorf("%s and %s are not equal", output, expected)
