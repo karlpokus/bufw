@@ -27,7 +27,7 @@ $ go test -v -cover -race
 - [x] replace bytes.Buffer with a single []byte
 - [x] godoc
 - [x] Wait timeout
-- [ ] return an error if Wait is used but written chan is nil
+- [x] return an error if Wait is used but written chan is nil
 - [ ] let wait return buffer contents
 
 # license

@@ -71,6 +71,15 @@ func TestWaitTimeout(t *testing.T) {
 	}
 }
 
+func TestWaitNilchan(t *testing.T) {
+	w := New(false)
+	go func() {	w.Write([]byte("hello")) }()
+	err := w.Wait()
+	if err != ErrNilchan {
+		t.Errorf("Expected %s, got %s", ErrNilchan, err)
+	}
+}
+
 func TestWaitN(t *testing.T) {
 	w := New(true)
 	input := []byte(" hello ")
@@ -112,6 +121,20 @@ func TestWaitNTimeout(t *testing.T) {
 	output := w.Bytes()
 	if !bytes.Equal(output, expected) {
 		t.Errorf("%s and %s are not equal", output, expected)
+	}
+}
+
+func TestWaitNNilchan(t *testing.T) {
+	w := New(false)
+	input := []byte("hello")
+	go func() {	w.Write(input) }()
+	go func() {	w.Write(input) }()
+	n, err := w.WaitN(2)
+	if err != ErrNilchan {
+		t.Errorf("Expected %s, got %s", ErrNilchan, err)
+	}
+	if n != 0 {
+		t.Errorf("Expected %d, got %d", 0, n)
 	}
 }
 

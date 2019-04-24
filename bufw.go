@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-var ErrTimeout = errors.New("timeout")
+var (
+	ErrTimeout = errors.New("timeout")
+	ErrNilchan = errors.New("wait called on nil chan")
+)
 
 // Bufw implements io.Writer. Safe for concurrent use
 type Bufw struct {
@@ -45,8 +48,11 @@ func (w *Bufw) String() string {
 }
 
 // Wait blocks on the written chan until a Write is performed or a timeout occurs.
-// A timeout will return an error.
+// A timeout, or calling Wait on a nil chan will return an error.
 func (w *Bufw) Wait() error {
+	if w.written == nil {
+		return ErrNilchan
+	}
 	timer := time.NewTimer(w.ttl)
 	select {
 	case <-timer.C:
