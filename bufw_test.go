@@ -3,7 +3,6 @@ package bufw
 import (
 	"bytes"
 	"testing"
-	"time"
 )
 
 func TestNew(t *testing.T) {
@@ -55,25 +54,14 @@ func TestWait(t *testing.T) {
 func TestWaitTimeout(t *testing.T) {
 	w := New(true)
 	w.SyncTimeout("100ms")
-	input := []byte("hello")
-	go func() {
-		time.Sleep(1 * time.Second)
-		w.Write(input)
-	}()
 	err := w.Wait()
 	if err != ErrTimeout {
 		t.Errorf("Expected %s, got %s", ErrTimeout, err)
-	}
-	output := w.Bytes()
-	var expected []byte
-	if !bytes.Equal(output, expected) {
-		t.Errorf("%s and %s are not equal", output, expected)
 	}
 }
 
 func TestWaitNilchan(t *testing.T) {
 	w := New(false)
-	go func() {	w.Write([]byte("hello")) }()
 	err := w.Wait()
 	if err != ErrNilchan {
 		t.Errorf("Expected %s, got %s", ErrNilchan, err)
@@ -106,10 +94,6 @@ func TestWaitNTimeout(t *testing.T) {
 	input := []byte(" hello ")
 	go func() { w.Write(input) }()
 	go func() { w.Write(input) }()
-	go func() {
-		time.Sleep(1 * time.Second)
-		w.Write(input)
-	}()
 	n, err := w.WaitN(3)
 	if err != ErrTimeout {
 		t.Errorf("Expected %s, got %s", ErrTimeout, err)
@@ -126,9 +110,6 @@ func TestWaitNTimeout(t *testing.T) {
 
 func TestWaitNNilchan(t *testing.T) {
 	w := New(false)
-	input := []byte("hello")
-	go func() {	w.Write(input) }()
-	go func() {	w.Write(input) }()
 	n, err := w.WaitN(2)
 	if err != ErrNilchan {
 		t.Errorf("Expected %s, got %s", ErrNilchan, err)
