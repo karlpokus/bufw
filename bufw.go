@@ -76,9 +76,10 @@ func (w *Bufw) WaitN(n int) (int, error) {
 }
 
 /// SyncTimeout sets the timeout for the Wait and WaitN funcs
-func (w *Bufw) SyncTimeout(ttl string) {
-	d, _ := time.ParseDuration(ttl)
+func (w *Bufw) SyncTimeout(ttl string) error {
+	d, err := time.ParseDuration(ttl)
 	w.ttl = d
+	return err
 }
 
 // New returns a Bufw type and instantiates the written chan if enableSync is true
