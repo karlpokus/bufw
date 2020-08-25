@@ -26,7 +26,9 @@ $ go test -v -cover -race
 - [x] trim Write input
 - [x] replace bytes.Buffer with a single []byte
 - [x] godoc
-- [ ] let `Wait` return buffer contents
+- [x] Wait timeout
+- [x] return an error if Wait is used but written chan is nil
+- [ ] let wait return buffer contents
 
 # license
 MIT
