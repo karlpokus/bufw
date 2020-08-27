@@ -8,10 +8,7 @@ import (
 	"time"
 )
 
-var (
-	ErrTimeout = errors.New("timeout")
-	ErrNilchan = errors.New("wait called on nil chan")
-)
+var ErrTimeout = errors.New("timeout")
 
 // Bufw implements io.Writer. Safe for concurrent use
 type Bufw struct {
@@ -22,14 +19,12 @@ type Bufw struct {
 }
 
 // Write writes whitespace trimmed bytes to an internal buffer
-// also writes to the written chan if sync is enabled
+// and writes to the written chan
 func (w *Bufw) Write(b []byte) (n int, err error) {
 	w.Lock()
 	defer w.Unlock()
 	w.buf = append(w.buf, bytes.TrimSpace(b)...)
-	if w.written != nil {
-		w.written <- true
-	}
+	w.written <- true
 	return len(b), nil
 }
 
@@ -48,11 +43,8 @@ func (w *Bufw) String() string {
 }
 
 // Wait blocks on the written chan until a Write is performed or a timeout occurs.
-// A timeout, or calling Wait on a nil chan will return an error.
+// A timeout will return an error.
 func (w *Bufw) Wait() error {
-	if w.written == nil {
-		return ErrNilchan
-	}
 	timer := time.NewTimer(w.ttl)
 	select {
 	case <-timer.C:
@@ -82,14 +74,11 @@ func (w *Bufw) SyncTimeout(ttl string) error {
 	return err
 }
 
-// New returns a Bufw type and instantiates the written chan if enableSync is true
-// The default timeout for sync is 10s
-func New(enableSync bool) *Bufw {
-	w := &Bufw{}
-	if enableSync {
-		w.written = make(chan bool)
-		d, _ := time.ParseDuration("10s")
-		w.ttl = d
+// New returns a Bufw type with a default wait timeout of 10s
+func New() *Bufw {
+	d, _ := time.ParseDuration("10s")
+	return &Bufw{
+		ttl: d,
+		written: make(chan bool),
 	}
-	return w
 }
